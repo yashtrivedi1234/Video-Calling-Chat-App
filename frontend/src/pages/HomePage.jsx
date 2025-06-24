@@ -88,9 +88,9 @@ const HomePage = () => {
           <div className="mb-6 sm:mb-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Meet New Learners</h2>
+                <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Meet New People</h2>
                 <p className="opacity-70">
-                  Discover perfect language exchange partners based on your profile
+                  Discover people based on your profile
                 </p>
               </div>
             </div>
