@@ -110,11 +110,6 @@ For the frontend, create a `.env` file in the `frontend/` directory:
 
 ---
 
-## Screenshots
-
- ---
-
-
  ## Demo Video
 
 
