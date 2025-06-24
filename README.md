@@ -117,4 +117,8 @@ For the frontend, create a `.env` file in the `frontend/` directory:
 
  ## Demo Video
 
+
+https://github.com/user-attachments/assets/fd762b54-3e0f-4378-a4b1-b9a6eaffcf1a
+
+
  ---
