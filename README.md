@@ -1,84 +1,10 @@
-
 # Video Calling Chat App – Real-Time Communication Platform
 
 This is a full-stack MERN (MongoDB, Express, React, Node.js) application that allows users to register, connect with friends, and engage in one-on-one video calls with real-time chat and screen sharing. Built using WebRTC and Socket.IO, it provides a seamless communication experience directly in the browser without needing any external software.
 
-# Who it’s for:
-- Developers exploring real-time peer-to-peer communication.
-- Startups and teams looking for a basic video chat MVP.
-- Students or engineers building portfolio projects.
-- Anyone who wants to learn WebRTC and real-time app development.
+# Live Link:-
 
-
-## 📡 API Endpoints Overview
-
-| Method | Endpoint                     | Description                   | Auth Required |
-|--------|------------------------------|-------------------------------|---------------|
-| POST   | `/api/auth/register`         | Register a new user           | ❌            |
-| POST   | `/api/auth/login`            | Login and receive JWT token   | ❌            |
-| GET    | `/api/user/me`               | Get authenticated user info   | ✅            |
-| POST   | `/api/friends/request/:id`   | Send a friend request         | ✅            |
-| PUT    | `/api/friends/accept/:id`    | Accept a friend request       | ✅            |
-| GET    | `/api/friends/list`          | Retrieve list of user friends | ✅            |
-
-
-
-
-
-## Acknowledgements
-
- - [Awesome Readme Templates](https://awesomeopensource.com/project/elangosundar/awesome-README-templates)
- - [Awesome README](https://github.com/matiassingers/awesome-readme)
- - [How to write a Good readme](https://bulldogjob.com/news/449-how-to-write-a-good-readme-for-your-github-project)
-
-
-## Authors
-
-- [@Yash Trivedi](https://www.github.com/yashtrivedi1234)
-
-
-## Demo
-
-Insert gif or link to demo
-
-## 🌐 Environment Variables
-
-To run this project, create a `.env` file in the `backend/` directory with the following variables:
-
-| Variable Name         | Description                                      |
-|-----------------------|--------------------------------------------------|
-| `PORT`                | Port on which the backend server runs (e.g. 5001) |
-| `MONGO_URI`           | MongoDB connection string                        |
-| `STREAM_API_KEY`      | Stream Chat API public key                       |
-| `STREAM_API_SECRET`   | Stream Chat API secret key                       |
-| `JWT_SECRET_KEY`      | Secret used to sign and verify JWTs              |
-
-For the frontend, create a `.env` file in the `frontend/` directory:
-
-| Variable Name          | Description                         |
-|------------------------|-------------------------------------|
-| `VITE_STREAM_API_KEY`  | Vite-exposed Stream API public key  |
-
-
-
-## FAQ
-
-#### Question 1
-
-Answer 1
-
-#### Question 2
-
-Answer 2
-
-
-## Deployment
-
-To deploy this project run
-
-```bash
-  npm run deploy
-```
+---
 
 ## ✨ Features
 
@@ -113,6 +39,8 @@ To deploy this project run
   - Well-structured backend & frontend folders
   - Easy to maintain and scale
 
+---
+
 ## 🛠️ Tech Stack
 
 ### 🧩 Frontend
@@ -124,8 +52,6 @@ To deploy this project run
 | **Socket.IO Client** | Real-time WebSocket communication |
 | **WebRTC**   | Peer-to-peer audio, video, and screen sharing |
 | **Context API & Hooks** | State management and reusability |
-
----
 
 ### ⚙️ Backend
 
@@ -140,8 +66,6 @@ To deploy this project run
 | **bcryptjs**   | Password hashing                             |
 | **dotenv**     | Environment variable management               |
 
----
-
 ### 🌐 Dev Tools & Hosting
 
 | Tool         | Purpose                              |
@@ -151,43 +75,46 @@ To deploy this project run
 | **Thunder Client / Postman** | API testing           |
 | **Git & GitHub** | Version control and collaboration |
 
+---
+
+## 📡 API Endpoints Overview
+
+| Method | Endpoint                     | Description                   | Auth Required |
+|--------|------------------------------|-------------------------------|---------------|
+| POST   | `/api/auth/register`         | Register a new user           | ❌            |
+| POST   | `/api/auth/login`            | Login and receive JWT token   | ❌            |
+| GET    | `/api/user/me`               | Get authenticated user info   | ✅            |
+| POST   | `/api/friends/request/:id`   | Send a friend request         | ✅            |
+| PUT    | `/api/friends/accept/:id`    | Accept a friend request       | ✅            |
+| GET    | `/api/friends/list`          | Retrieve list of user friends | ✅            |
+
+---
+
+## 🌐 Environment Variables
+
+To run this project, create a `.env` file in the `backend/` directory with the following variables:
+
+| Variable Name         | Description                                      |
+|-----------------------|--------------------------------------------------|
+| `PORT`                | Port on which the backend server runs (e.g. 5001) |
+| `MONGO_URI`           | MongoDB connection string                        |
+| `STREAM_API_KEY`      | Stream Chat API public key                       |
+| `STREAM_API_SECRET`   | Stream Chat API secret key                       |
+| `JWT_SECRET_KEY`      | Secret used to sign and verify JWTs              |
+
+For the frontend, create a `.env` file in the `frontend/` directory:
+
+| Variable Name          | Description                         |
+|------------------------|-------------------------------------|
+| `VITE_STREAM_API_KEY`  | Vite-exposed Stream API public key  |
+
+---
+
 ## Screenshots
 
-![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
+ ---
 
 
-## Installation
+ ## Demo Video
 
-Install my-project with npm
-
-```bash
-  npm install my-project
-  cd my-project
-```
-    
-## Run Locally
-
-Clone the project
-
-```bash
-  git clone https://link-to-project
-```
-
-Go to the project directory
-
-```bash
-  cd my-project
-```
-
-Install dependencies
-
-```bash
-  npm install
-```
-
-Start the server
-
-```bash
-  npm run start
-```
-
+ ---
