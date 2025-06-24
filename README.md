@@ -1,196 +1,193 @@
-# 📹 Video Calling Chat App
 
-A full-stack real-time video calling and chat application built with the MERN stack, WebRTC, and Socket.IO. This application enables users to authenticate, send friend requests, initiate peer-to-peer video calls, chat in real-time, and share their screen—all from the browser.
+# Video Calling Chat App – Real-Time Communication Platform
 
-**Live Demo**: [https://video-calling-chat-app.onrender.com](https://video-calling-chat-app.onrender.com)
+This is a full-stack MERN (MongoDB, Express, React, Node.js) application that allows users to register, connect with friends, and engage in one-on-one video calls with real-time chat and screen sharing. Built using WebRTC and Socket.IO, it provides a seamless communication experience directly in the browser without needing any external software.
 
----
+# Who it’s for:
+- Developers exploring real-time peer-to-peer communication.
+- Startups and teams looking for a basic video chat MVP.
+- Students or engineers building portfolio projects.
+- Anyone who wants to learn WebRTC and real-time app development.
 
-## ✨ Key Features
 
-- 🔐 **User Authentication** – Register, login, and manage sessions with JWT.
-- 🤝 **Friend Requests** – Send, receive, and manage friend requests.
-- 📞 **One-on-One Video Calling** – Peer-to-peer WebRTC-based calls.
-- 💬 **Real-Time Chat** – Exchange instant messages during calls.
-- 🖥️ **Screen Sharing** – Present or collaborate with screen sharing.
-- 🌐 **Socket.IO Integration** – Real-time signaling and status updates.
-- 📱 **Responsive UI** – Optimized for both desktop and mobile devices.
+## 📡 API Endpoints Overview
 
----
+| Method | Endpoint                     | Description                   | Auth Required |
+|--------|------------------------------|-------------------------------|---------------|
+| POST   | `/api/auth/register`         | Register a new user           | ❌            |
+| POST   | `/api/auth/login`            | Login and receive JWT token   | ❌            |
+| GET    | `/api/user/me`               | Get authenticated user info   | ✅            |
+| POST   | `/api/friends/request/:id`   | Send a friend request         | ✅            |
+| PUT    | `/api/friends/accept/:id`    | Accept a friend request       | ✅            |
+| GET    | `/api/friends/list`          | Retrieve list of user friends | ✅            |
+
+
+
+
+
+## Acknowledgements
+
+ - [Awesome Readme Templates](https://awesomeopensource.com/project/elangosundar/awesome-README-templates)
+ - [Awesome README](https://github.com/matiassingers/awesome-readme)
+ - [How to write a Good readme](https://bulldogjob.com/news/449-how-to-write-a-good-readme-for-your-github-project)
+
+
+## Authors
+
+- [@Yash Trivedi](https://www.github.com/yashtrivedi1234)
+
+
+## Demo
+
+Insert gif or link to demo
+
+## 🌐 Environment Variables
+
+To run this project, create a `.env` file in the `backend/` directory with the following variables:
+
+| Variable Name         | Description                                      |
+|-----------------------|--------------------------------------------------|
+| `PORT`                | Port on which the backend server runs (e.g. 5001) |
+| `MONGO_URI`           | MongoDB connection string                        |
+| `STREAM_API_KEY`      | Stream Chat API public key                       |
+| `STREAM_API_SECRET`   | Stream Chat API secret key                       |
+| `JWT_SECRET_KEY`      | Secret used to sign and verify JWTs              |
+
+For the frontend, create a `.env` file in the `frontend/` directory:
+
+| Variable Name          | Description                         |
+|------------------------|-------------------------------------|
+| `VITE_STREAM_API_KEY`  | Vite-exposed Stream API public key  |
+
+
+
+## FAQ
+
+#### Question 1
+
+Answer 1
+
+#### Question 2
+
+Answer 2
+
+
+## Deployment
+
+To deploy this project run
+
+```bash
+  npm run deploy
+```
+
+## ✨ Features
+
+- 🔐 **Secure Authentication**
+  - Register and login with JWT-based session handling
+  - Passwords encrypted using bcrypt
+
+- 🤝 **Friend Request System**
+  - Send and accept friend requests
+  - Fetch list of accepted friends
+
+- 📞 **One-on-One Video Calling**
+  - Real-time peer-to-peer calls using WebRTC
+  - Supports video, audio, and screen sharing
+
+- 💬 **Real-Time Chat**
+  - Text chat alongside video calls
+  - Socket.IO-powered messaging
+
+- 🖥️ **Screen Sharing**
+  - Share your screen in-call for collaboration or presentation
+
+- 📡 **WebSocket Integration**
+  - Real-time presence updates (online/offline)
+  - Call signaling handled over Socket.IO
+
+- 🎨 **Responsive UI**
+  - Clean and modern design using React
+  - Optimized for mobile and desktop devices
+
+- 📁 **Modular Codebase**
+  - Well-structured backend & frontend folders
+  - Easy to maintain and scale
 
 ## 🛠️ Tech Stack
 
-### Frontend
-- **React.js** with Vite
-- **Socket.IO Client**
-- **WebRTC APIs**
-- **Context API & Hooks**
+### 🧩 Frontend
 
-### Backend
-- **Node.js**, **Express.js**
-- **MongoDB** with **Mongoose**
-- **Socket.IO Server**
-- **JWT** for authentication
-- **Nodemailer** for notifications
+| Technology   | Purpose                                 |
+|--------------|------------------------------------------|
+| **React.js** | Frontend library for building UI         |
+| **Vite**     | Fast development server and bundler      |
+| **Socket.IO Client** | Real-time WebSocket communication |
+| **WebRTC**   | Peer-to-peer audio, video, and screen sharing |
+| **Context API & Hooks** | State management and reusability |
 
 ---
 
-## 📁 Project Structure
+### ⚙️ Backend
 
-Video-Calling-Chat-App/
-├── backend/
-│   ├── controllers/
-│   ├── models/
-│   ├── routes/
-│   ├── middleware/
-│   ├── socket.js
-│   └── server.js
-│
-└── frontend/
-├── src/
-│   ├── components/
-│   ├── context/
-│   ├── hooks/
-│   ├── pages/
-│   ├── App.jsx
-│   └── main.jsx
+| Technology     | Purpose                                     |
+|----------------|----------------------------------------------|
+| **Node.js**    | JavaScript runtime for server-side logic     |
+| **Express.js** | Backend framework for routing and middleware |
+| **MongoDB**    | NoSQL database for storing user data         |
+| **Mongoose**   | ODM for MongoDB schema and queries           |
+| **Socket.IO**  | Real-time bidirectional communication         |
+| **JWT**        | Secure token-based authentication            |
+| **bcryptjs**   | Password hashing                             |
+| **dotenv**     | Environment variable management               |
 
 ---
 
-## 🚀 Getting Started
+### 🌐 Dev Tools & Hosting
 
-### Prerequisites
+| Tool         | Purpose                              |
+|--------------|---------------------------------------|
+| **Render**   | Backend deployment                    |
+| **Vercel** / **Netlify** | Frontend deployment       |
+| **Thunder Client / Postman** | API testing           |
+| **Git & GitHub** | Version control and collaboration |
 
-- Node.js (v14+)
-- MongoDB URI (local or MongoDB Atlas)
+## Screenshots
 
-### Installation
+![App Screenshot](https://via.placeholder.com/468x300?text=App+Screenshot+Here)
+
+
+## Installation
+
+Install my-project with npm
 
 ```bash
-git clone https://github.com/yashtrivedi1234/Video-Calling-Chat-App.git
-cd Video-Calling-Chat-App
+  npm install my-project
+  cd my-project
+```
+    
+## Run Locally
 
-Install backend dependencies:
+Clone the project
 
-cd backend
-npm install
+```bash
+  git clone https://link-to-project
+```
 
-Install frontend dependencies:
+Go to the project directory
 
-cd ../frontend
-npm install
+```bash
+  cd my-project
+```
 
-Create a .env file in the backend/ directory:
+Install dependencies
 
-PORT=5001
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
+```bash
+  npm install
+```
 
+Start the server
 
-⸻
+```bash
+  npm run start
+```
 
-Run the Application
-
-In two separate terminals:
-
-# Terminal 1 - Backend
-cd backend
-npm run start
-
-# Terminal 2 - Frontend
-cd frontend
-npm run dev
-
-Visit: http://localhost:5173
-
-⸻
-
-🔐 Authentication Flow
-	•	Passwords are hashed using bcryptjs.
-	•	JWT token is issued upon login and stored in localStorage.
-	•	All protected routes validate the token before access.
-
-⸻
-
-📡 WebRTC Call Flow
-	1.	User connects to Socket.IO server after login.
-	2.	When initiating a call, the app sends an SDP offer through socket signaling.
-	3.	The receiving peer sends back an SDP answer.
-	4.	ICE candidates are exchanged for NAT traversal.
-	5.	Direct P2P connection is established for video, audio, and screen data.
-
-⸻
-
-🔄 API Endpoints Overview
-
-Method	Endpoint	Description	Auth Required
-POST	/api/auth/register	Register a new user	❌
-POST	/api/auth/login	Login and get token	❌
-GET	/api/user/me	Get authenticated user info	✅
-POST	/api/friends/request/:id	Send friend request	✅
-PUT	/api/friends/accept/:id	Accept friend request	✅
-GET	/api/friends/list	Get user’s friend list	✅
-
-⚠️ Additional WebSocket events handle call signaling, messaging, and online status.
-
-⸻
-
-📷 UI Snapshots
-
-Add screenshots or screen recordings here to show login, call interface, chat, screen sharing, etc.
-
-Example:
-
-Login Page
-
-Video Call in Action
-
-
-⸻
-
-🧪 Testing
-	•	Use multiple browser tabs or devices to simulate different users.
-	•	For WebSocket activity, inspect the browser console and server logs.
-	•	Use browser permissions to allow mic and camera.
-
-⸻
-
-🧱 Deployment
-	•	Frontend: Deploy to Vercel, Netlify, or GitHub Pages
-	•	Backend: Deploy to Render, Railway, or Heroku
-	•	Make sure to update your environment variables and client URLs
-
-⸻
-
-📌 Roadmap
-	•	Group video calling
-	•	Typing indicators in chat
-	•	Video call history and logs
-	•	Push notifications via service workers
-
-⸻
-
-🤝 Contribution Guidelines
-	1.	Fork the repository
-	2.	Create a feature branch (git checkout -b feat/your-feature)
-	3.	Commit your changes (git commit -m "Add: your feature")
-	4.	Push to the branch (git push origin feat/your-feature)
-	5.	Open a Pull Request
-
-⸻
-
-📄 License
-
-This project is licensed under the MIT License.
-
-⸻
-
-🙋‍♂️ Author
-
-Yash Trivedi
-GitHub: @yashtrivedi1234
-Email: yashtrivedi.dev@gmail.com
-
----
-
-✅ You can now paste this entire content into your `README.md` file in the root of your GitHub repo for a professional presentation. If you'd like me to add **badges**, **real screenshots**, or a **demo walkthrough video**, just let me know!
