@@ -12,6 +12,8 @@ https://github.com/user-attachments/assets/fd762b54-3e0f-4378-a4b1-b9a6eaffcf1a
 
 This is a full-stack MERN (MongoDB, Express, React, Node.js) application that allows users to register, connect with friends, and engage in one-on-one video calls with real-time chat and screen sharing. Built using WebRTC and Socket.IO, it provides a seamless communication experience directly in the browser without needing any external software.
 
+# Live Link: https://video-calling-chat-app.onrender.com
+
 ---
 
 ## ✨ Features
