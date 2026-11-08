@@ -3,33 +3,122 @@
   themes: all;
 }
 
-.str-chat__channel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(to bottom, #c9e8c9, #b7e7bb);
+.meetify-chat .str-chat,
+.meetify-chat .str-chat__channel,
+.meetify-chat .str-chat__container,
+.meetify-chat .str-chat__main-panel {
   height: 100%;
+  min-height: 0;
+  min-width: 0;
 }
 
-.str-chat__container {
+.meetify-chat .str-chat__channel {
+  background: linear-gradient(to bottom, #c9e8c9, #b7e7bb);
+  padding: 16px;
+}
+
+.meetify-chat .str-chat__container {
   max-width: 1200px;
   width: 100%;
-  height: 80% !important;
-  margin: 0 auto !important;
+  margin: 0 auto;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   overflow: hidden;
 }
 
-.str-chat__list {
+.meetify-chat .str-chat__main-panel {
+  flex: 1;
+}
+
+.meetify-chat .str-chat__message-list-main-panel {
+  flex: 1;
+  min-height: 0;
+}
+
+.meetify-chat__header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  padding-right: 12px;
+  border-bottom: 1px solid #ddd;
+  background: #fff;
+}
+
+.meetify-chat__header .str-chat__channel-header {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+}
+
+.meetify-chat__header .str-chat__channel-header-end {
+  min-width: 0;
+}
+
+.meetify-chat .str-chat__list {
+  min-height: 0;
   background-color: #ffffff;
   padding: 12px;
 }
 
-.str-chat__list-notifications {
+.meetify-chat .str-chat__list-notifications {
   display: none;
 }
 
-.str-chat__message-input {
+.meetify-chat__composer {
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.meetify-chat .str-chat__message-input {
+  flex-shrink: 0;
   border-top: 1px solid #ddd;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+
+.meetify-chat .str-chat__file-input-container {
+  flex: 0 0 44px;
+}
+
+.meetify-chat .str-chat__file-input-label {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.meetify-chat .str-chat__message-text {
+  overflow-wrap: anywhere;
+}
+
+.meetify-chat .str-chat__thread {
+  flex: 0 0 36%;
+  min-width: 0;
+  max-width: 384px;
+  border-left: 1px solid #ddd;
+}
+
+@media (max-width: 767px) {
+  .meetify-chat .str-chat__channel {
+    padding: 0;
+  }
+
+  .meetify-chat .str-chat__container {
+    border-radius: 0;
+  }
+
+  .meetify-chat .str-chat__container .str-chat__main-panel--thread-open {
+    display: none;
+  }
+
+  .meetify-chat .str-chat__thread {
+    flex-basis: 100%;
+    max-width: none;
+    border-left: 0;
+  }
+
+  .meetify-chat .str-chat__list {
+    padding: 8px;
+  }
+
+  .meetify-chat textarea {
+    font-size: 16px;
+  }
 }

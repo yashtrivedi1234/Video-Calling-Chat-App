@@ -16,42 +16,38 @@ const Navbar = () => {
   const { logoutMutation, isPending } = useLogout();
 
   return (
-    <nav className="bg-base-200 border-b border-base-300 sticky top-0 z-30 h-16 flex items-center">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-end w-full">
+    <nav className="bg-base-200 border-b border-base-300 sticky top-0 z-30 h-16 shrink-0 flex items-center">
+      <div className="container mx-auto min-w-0 px-2 sm:px-6 lg:px-8">
+        <div className="flex w-full min-w-0 items-center justify-end gap-1 sm:gap-2">
           {/* LOGO - ONLY IN THE CHAT PAGE */}
           {isChatPage && (
-            <div className="pl-5">
-              <Link to="/" className="flex items-center gap-2.5">
-                <ShipWheelIcon className="size-9 text-primary" />
-                <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary  tracking-wider">
+            <div className="mr-auto shrink-0">
+              <Link to="/" aria-label="Meetify home" className="flex min-h-11 min-w-11 items-center justify-center gap-2.5">
+                <ShipWheelIcon className="size-7 text-primary sm:size-9" />
+                <span className="hidden text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tracking-wider sm:inline">
                   Meetify
                 </span>
               </Link>
             </div>
           )}
 
-          <div className="flex items-center gap-3 sm:gap-4 ml-auto">
-            <Link to={"/notifications"}>
-              <button className="btn btn-ghost btn-circle">
-                <BellIcon className="h-6 w-6 text-base-content opacity-70" />
-              </button>
-            </Link>
-          </div>
+          <Link to="/notifications" aria-label="Notifications" className="btn btn-ghost btn-circle shrink-0">
+            <BellIcon className="h-6 w-6 text-base-content opacity-70" />
+          </Link>
 
           {/* TODO */}
           <PushNotificationButton userId={authUser?._id} />
           <ThemeSelector />
 
-          <div className="avatar">
-            <div className="w-9 rounded-full">
+          <div className="avatar shrink-0">
+            <div className="w-8 rounded-full sm:w-9">
               <img src={authUser?.profilePic} alt="User Avatar" rel="noreferrer" />
             </div>
           </div>
 
           {/* Logout button */}
            <button
-            className="btn btn-ghost btn-circle"
+            className="btn btn-ghost btn-circle shrink-0"
             aria-label="Log out"
             disabled={isPending}
             onClick={async () => {

@@ -27,7 +27,7 @@ const App = () => {
   const isOnboarded = authUser?.isOnboarded;
 
   return (
-    <div className="h-screen" data-theme={theme}>
+    <div className="min-h-dvh" data-theme={theme}>
       {isLoading ? (
         <PageLoader />
       ) : (

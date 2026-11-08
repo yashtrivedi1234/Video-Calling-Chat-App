@@ -127,19 +127,19 @@ const ChatPage = () => {
   if (loading || !chatClient || !channel) return <ChatLoader />;
 
   return (
-    <div className="h-[93vh]">
+    <div className="meetify-chat h-full min-h-0 min-w-0">
       <Chat client={chatClient}>
         <Channel channel={channel}>
-          <div className="w-full relative">
-            <CallButton handleVideoCall={handleVideoCall} />
-            <Window>
+          <Window>
+            <div className="meetify-chat__header">
               <ChannelHeader />
-              <MessageList />
-              <div onInputCapture={handleTyping} onBlurCapture={stopTyping}>
-                <MessageInput focus />
-              </div>
-            </Window>
-          </div>
+              <CallButton handleVideoCall={handleVideoCall} />
+            </div>
+            <MessageList />
+            <div className="meetify-chat__composer" onInputCapture={handleTyping} onBlurCapture={stopTyping}>
+              <MessageInput />
+            </div>
+          </Window>
           <Thread />
         </Channel>
       </Chat>
