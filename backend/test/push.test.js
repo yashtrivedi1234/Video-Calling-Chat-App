@@ -152,6 +152,30 @@ test("read receipts, reactions and call invitations have the correct routes and 
   assert.equal(packets.at(-1).options.headers.TTL, 60);
 });
 
+test("consecutive messages each get a separate notification while retries keep the same identity", async () => {
+  const events = ["message-1", "message-2", "message-3"].map((id) => ({
+    type: "message.new", cid: `messaging:${channelId}`, user: { id: actorId },
+    message: { id, text: "Hello" }, members: [{ user_id: actorId }, { user_id: recipientId }],
+  }));
+  for (const event of events) {
+    const reply = res();
+    await streamWebhook(webhookRequest(event), reply);
+    assert.equal(reply.statusCode, 200);
+  }
+  assert.equal(packets.length, 3);
+  const notifications = packets.map((packet) => packetData(packet));
+  assert.equal(new Set(notifications.map((notification) => notification.tag)).size, 3);
+  assert.equal(new Set(notifications.map((notification) => notification.id)).size, 3);
+  for (const notification of notifications) {
+    assert.equal(notification.body, "Hello");
+    assert.equal(notification.url, `/chat/${actorId}`);
+    assert.equal(notification.userId, recipientId);
+  }
+  await streamWebhook(webhookRequest(events[0]), res());
+  assert.equal(packetData(packets.at(-1)).id, notifications[0].id);
+  assert.equal(packetData(packets.at(-1)).tag, notifications[0].tag);
+});
+
 test("typing and call activity cannot target strangers or impersonate another call participant", async () => {
   await reportTyping(request({ recipientId, type: "typing.start" }), res());
   assert.match(packetData().body, /Alice is typing/);

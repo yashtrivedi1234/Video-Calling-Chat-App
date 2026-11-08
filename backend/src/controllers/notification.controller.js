@@ -135,12 +135,13 @@ export async function streamWebhook(req, res) {
     const recipients = members.filter((member) => !member.notifications_muted).map((member) => member.user_id || member.user?.id).filter((id) => id !== actorId && actor.friends.some((friend) => friend.toString() === id));
     const callInvite = event.type === "message.new" && event.message?.meetify_event === "call.invite" && event.message?.call_id === channelId;
     const messageText = typeof event.message?.text === "string" ? event.message.text.slice(0, 160) : "";
+    const eventId = createHash("sha256").update(req.body).digest("hex");
     const delivered = await sendPush(recipients, {
-      id: createHash("sha256").update(req.body).digest("hex"),
+      id: eventId,
       title: callInvite ? "Video call invitation" : event.type === "message.new" ? `Message from ${actor.fullName}` : "Conversation activity",
       body: callInvite ? `${actor.fullName} invited you to a video call.` : event.type === "message.new" ? messageText || `${actor.fullName} sent an attachment.` : `${actor.fullName} ${STREAM_NOTIFICATION_EVENTS[event.type]}.`,
       url: callInvite ? `/call/${channelId}` : `/chat/${actorId}`,
-      tag: callInvite ? `call:${channelId}` : `chat:${channelId}:${event.type}`,
+      tag: event.type === "message.new" ? `message:${eventId}` : `chat:${channelId}:${event.type}`,
       ttl: callInvite ? 60 : 3600,
     });
     res.status(delivered ? 200 : 503).json({ success: delivered });

@@ -68,3 +68,17 @@ test("worker constrains notification links to this site and ignores malformed pa
   assert.deepEqual(instance.opened, ["https://meetify.example/chat/bob"]);
   await instance.dispatch("pushsubscriptionchange", { oldSubscription: null, newSubscription: null });
 });
+
+test("worker displays every message in the same chat and suppresses a retried delivery", async () => {
+  const instance = worker();
+  await instance.dispatch("message", { data: { type: "BIND_USER", userId: "alice" } });
+  const messages = ["message-1", "message-2", "message-3"].map((id) => ({
+    id, userId: "alice", title: "Message from Bob", body: "Hello", url: "/chat/bob", tag: `message:${id}`,
+  }));
+  for (const message of [...messages, messages[0]]) {
+    await instance.dispatch("push", { data: { json: () => message } });
+  }
+  assert.equal(instance.notifications.length, 3);
+  assert.equal(new Set(instance.notifications.map((notification) => notification.tag)).size, 3);
+  assert.ok(instance.notifications.every((notification) => notification.data.url === "https://meetify.example/chat/bob"));
+});
