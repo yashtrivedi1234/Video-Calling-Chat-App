@@ -5,7 +5,11 @@ const userSchema = new mongoose.Schema(
   {
     fullName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true, minlength: 6 },
+    password: { type: String, required: true, minlength: 6, select: false },
+    passwordVersion: { type: Number, default: 0 },
+    passwordResetToken: { type: String, select: false },
+    passwordResetExpires: { type: Date, select: false },
+    presenceOnline: { type: Boolean, default: false, select: false },
     bio: { type: String, default: "" },
     profilePic: { type: String, default: "" },
     nativeLanguage: { type: String, default: "" },

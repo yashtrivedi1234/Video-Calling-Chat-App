@@ -5,13 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "test": "node --test",
+    "configure:push": "node scripts/configure-push.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
-   "dependencies": {
+  "dependencies": {
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -19,7 +21,9 @@
     "express": "^4.21.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.13.2",
-    "stream-chat": "^8.60.0"
+    "nodemailer": "^10.4.0",
+    "stream-chat": "^8.60.0",
+    "web-push": "^4.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"

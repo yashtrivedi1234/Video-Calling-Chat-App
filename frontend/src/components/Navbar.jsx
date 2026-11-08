@@ -5,7 +5,7 @@ import useAuthUser from "../hooks/useAuthUser.js";
 import { BellIcon, LogOutIcon, ShipWheelIcon } from "lucide-react";
 import ThemeSelector from "./ThemeSelector.jsx";
 import { useLogout } from "../hooks/useLogout.js";
-import { useQueryClient } from "@tanstack/react-query";
+import PushNotificationButton from "./PushNotificationButton.jsx";
 
 const Navbar = () => {
   const { authUser } = useAuthUser();
@@ -13,15 +13,7 @@ const Navbar = () => {
   const isChatPage = location.pathname?.startsWith("/chat");
   const navigate = useNavigate();
 
-  const queryClient = useQueryClient();
-
-  // const queryClient = useQueryClient();
-  // const { mutate: logoutMutation } = useMutation({
-  //   mutationFn: logout,
-  //   onSuccess: () => queryClient.invalidateQueries({ queryKey: ["authUser"] }),
-  // });
-
-  const { logoutMutation } = useLogout();
+  const { logoutMutation, isPending } = useLogout();
 
   return (
     <nav className="bg-base-200 border-b border-base-300 sticky top-0 z-30 h-16 flex items-center">
@@ -48,6 +40,7 @@ const Navbar = () => {
           </div>
 
           {/* TODO */}
+          <PushNotificationButton userId={authUser?._id} />
           <ThemeSelector />
 
           <div className="avatar">
@@ -59,14 +52,14 @@ const Navbar = () => {
           {/* Logout button */}
            <button
             className="btn btn-ghost btn-circle"
+            aria-label="Log out"
+            disabled={isPending}
             onClick={async () => {
               try {
                 await logoutMutation();
-                await queryClient.invalidateQueries({ queryKey: ["authUser"] });
                 toast.dismiss();
-                if (window.setJustLoggedOut) window.setJustLoggedOut(true);
-                navigate("/login", { replace: true }); // Force redirect
-              } catch (err) {
+                navigate("/login", { replace: true });
+              } catch {
                 toast.error("Logout failed. Please try again.");
               }
             }}

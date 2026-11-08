@@ -21,7 +21,10 @@ export const login = async (loginData) => {
 };
 export const logout = async () => {
   try {
-    const response = await axiosInstance.post("/auth/logout");
+    const response = await axiosInstance.post("/auth/logout", {
+      deviceId: sessionStorage.getItem("meetifyPresenceDevice"),
+      pushEndpoint: localStorage.getItem("meetifyPushEndpoint"),
+    });
     return response.data;
   } catch (error) {
     console.log("Error in logout:", error);
@@ -34,9 +37,20 @@ export const getAuthUser = async () => {
     const res = await axiosInstance.get("/auth/me");
     return res.data;
   } catch (error) {
+    if (error.response?.status === 401) return { user: null };
     console.log("Error in getAuthUser:", error);
     throw error;
   }
+};
+
+export const forgotPassword = async (email) => {
+  const response = await axiosInstance.post("/auth/forgot-password", { email });
+  return response.data;
+};
+
+export const resetPassword = async ({ token, password }) => {
+  const response = await axiosInstance.post("/auth/reset-password", { token, password });
+  return response.data;
 };
 
 export const completeOnboarding = async (userData) => {

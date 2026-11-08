@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import FriendRequest from "../models/FriendRequest.js";
+import { sendPush } from "../lib/push.js";
 
 export async function getRecommendedUsers(req, res) {
   try {
@@ -42,7 +43,7 @@ export async function sendFriendRequest(req, res) {
     const myId = req.user._id;
     const { id: recipientId } = req.params;
 
-    if (myId === recipientId) {
+    if (myId.toString() === recipientId) {
       return res
         .status(400)
         .json({ message: "You cannot send a friend request to yourself." });
@@ -74,6 +75,8 @@ export async function sendFriendRequest(req, res) {
       recipient: recipientId,
     });
     await newFriendRequest.save();
+    void sendPush([recipientId], { id: `friend-request:${newFriendRequest._id}`, title: "New friend request", body: `${req.user.fullName} sent you a friend request.`, url: "/notifications", tag: `friend-request:${newFriendRequest._id}` });
+    void sendPush([myId], { title: "Friend request sent", body: `Your friend request to ${recipient.fullName} was sent.`, url: "/notifications", tag: `friend-request-sent:${newFriendRequest._id}` });
     res.status(200).json({ message: "Friend request sent successfully." });
   } catch (error) {
     console.error("Error in sendFriendRequest Controller", error.message);
@@ -104,6 +107,8 @@ export async function acceptFriendRequest(req, res) {
     await User.findByIdAndUpdate(friendRequest.recipient, {
       $addToSet: { friends: friendRequest.sender },
     });
+    void sendPush([friendRequest.sender], { id: `friend-accepted:${friendRequest._id}`, title: "Friend request accepted", body: `${req.user.fullName} accepted your friend request.`, url: `/chat/${req.user._id}`, tag: `friend-accepted:${friendRequest._id}` });
+    void sendPush([friendRequest.recipient], { id: `friend-connected:${friendRequest._id}`, title: "New connection", body: "You’re now connected and can start a conversation.", url: `/chat/${friendRequest.sender}`, tag: `friend-connected:${friendRequest._id}` });
     res.status(200).json({ message: "Friend request accepted successfully." });
   } catch (error) {
     console.log("Error in acceptFriendRequest Controller", error.message);

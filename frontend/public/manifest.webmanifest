@@ -1,0 +1,10 @@
+{
+  "name": "Meetify",
+  "short_name": "Meetify",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#14261a",
+  "theme_color": "#4ade80",
+  "icons": [{ "src": "/notification-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

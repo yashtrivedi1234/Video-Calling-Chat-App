@@ -18,6 +18,7 @@ import {
 import "@stream-io/video-react-sdk/dist/css/styles.css";
 import toast from "react-hot-toast";
 import PageLoader from "../components/PageLoader.jsx";
+import { reportCall } from "../lib/push.js";
 
 const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 
@@ -36,8 +37,21 @@ const CallPage = () => {
   });
 
   useEffect(() => {
+    let cancelled = false;
+    let videoClient;
+    let callInstance;
+    let joined = false;
+    let reportedLeft = false;
+    const reportLeft = (keepalive = false) => {
+      if (joined && !reportedLeft) {
+        reportedLeft = true;
+        void reportCall(callId, "call.left", keepalive);
+      }
+    };
+    const onPageHide = () => reportLeft(true);
+    window.addEventListener("pagehide", onPageHide);
     const initCall = async () => {
-      if (!tokenData.token || !authUser || !callId) return;
+      if (!tokenData?.token || !authUser || !callId) return;
 
       try {
         console.log("Initializing Stream video client...");
@@ -48,29 +62,46 @@ const CallPage = () => {
           image: authUser.profilePic,
         };
 
-        const videoClient = new StreamVideoClient({
+        videoClient = new StreamVideoClient({
           apiKey: STREAM_API_KEY,
           user,
           token: tokenData.token,
         });
 
-        const callInstance = videoClient.call("default", callId);
+        callInstance = videoClient.call("default", callId);
 
         await callInstance.join({ create: true });
+        if (cancelled) {
+          await callInstance.leave();
+          await videoClient.disconnectUser();
+          return;
+        }
+        joined = true;
+        void reportCall(callId, "call.joined");
 
         console.log("Joined call successfully");
 
         setClient(videoClient);
         setCall(callInstance);
       } catch (error) {
+        if (videoClient) await videoClient.disconnectUser().catch(() => {});
+        if (cancelled) return;
         console.error("Error joining call:", error);
         toast.error("Could not join the call. Please try again.");
       } finally {
-        setIsConnecting(false);
+        if (!cancelled && tokenData?.token) setIsConnecting(false);
       }
     };
 
     initCall();
+    return () => {
+      cancelled = true;
+      window.removeEventListener("pagehide", onPageHide);
+      reportLeft();
+      if (joined) {
+        callInstance.leave().catch(() => {}).finally(() => videoClient.disconnectUser().catch(() => {}));
+      }
+    };
   }, [tokenData, authUser, callId]);
 
   if (isLoading || isConnecting) return <PageLoader />;

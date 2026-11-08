@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import useAuthUser from "../hooks/useAuthUser.js";
 import { useQuery } from "@tanstack/react-query";
@@ -18,6 +18,7 @@ import toast from "react-hot-toast";
 
 import ChatLoader from "../components/ChatLoader.jsx";
 import CallButton from "../components/CallButton.jsx";
+import { reportTyping } from "../lib/push.js";
 
 const STREAM_API_KEY = import.meta.env.VITE_STREAM_API_KEY;
 
@@ -27,8 +28,18 @@ const ChatPage = () => {
   const [chatClient, setChatClient] = useState(null);
   const [channel, setChannel] = useState(null);
   const [loading, setLoading] = useState(true);
+  const typingTimer = useRef(null);
+  const typingActive = useRef(false);
 
   const { authUser } = useAuthUser();
+
+  useEffect(() => () => {
+    clearTimeout(typingTimer.current);
+    if (typingActive.current) {
+      typingActive.current = false;
+      void reportTyping(targetUserId, "typing.stop");
+    }
+  }, [targetUserId]);
 
   const { data: tokenData } = useQuery({
     queryKey: ["streamToken"],
@@ -76,15 +87,40 @@ const ChatPage = () => {
     initChat();
   }, [tokenData, authUser, targetUserId]);
 
-  const handleVideoCall = () => {
+  const handleTyping = () => {
+    if (!typingActive.current) {
+      typingActive.current = true;
+      void reportTyping(targetUserId, "typing.start");
+    }
+    clearTimeout(typingTimer.current);
+    typingTimer.current = setTimeout(() => {
+      typingActive.current = false;
+      void reportTyping(targetUserId, "typing.stop");
+    }, 3000);
+  };
+
+  const stopTyping = () => {
+    clearTimeout(typingTimer.current);
+    if (typingActive.current) {
+      typingActive.current = false;
+      void reportTyping(targetUserId, "typing.stop");
+    }
+  };
+
+  const handleVideoCall = async () => {
     if (channel) {
       const callUrl = `${window.location.origin}/call/${channel.id}`;
 
-      channel.sendMessage({
-        text: `I've started a video call. Join me here: ${callUrl}`,
-      });
-
-      toast.success("Video call link sent successfully!");
+      try {
+        await channel.sendMessage({
+          text: `I've started a video call. Join me here: ${callUrl}`,
+          meetify_event: "call.invite",
+          call_id: channel.id,
+        });
+        toast.success("Video call link sent successfully!");
+      } catch {
+        toast.error("Could not send the call invitation. Please try again.");
+      }
     }
   };
 
@@ -99,7 +135,9 @@ const ChatPage = () => {
             <Window>
               <ChannelHeader />
               <MessageList />
-              <MessageInput focus />
+              <div onInputCapture={handleTyping} onBlurCapture={stopTyping}>
+                <MessageInput focus />
+              </div>
             </Window>
           </div>
           <Thread />

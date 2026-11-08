@@ -11,13 +11,11 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     const isUnauthorized = error.response?.status === 401;
-    const isPublicRoute =
-      window.location.pathname.startsWith("/login") ||
-      window.location.pathname.startsWith("/signup") ||
-      window.location.pathname.startsWith("/onboarding");
+    const isBackgroundCheck = ["/auth/me", "/notifications/presence"].includes(error.config?.url);
+    const isPublicRoute = ["/login", "/signup", "/forgot-password", "/reset-password"].includes(window.location.pathname);
 
-    if (isUnauthorized && !isPublicRoute) {
-      toast.error("You're not logged in. Please log in again.");
+    if (isUnauthorized && !isBackgroundCheck && !isPublicRoute) {
+      toast.error("Your session has expired. Please sign in again.", { id: "session-expired" });
     }
 
     return Promise.reject(error);

@@ -1,5 +1,4 @@
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 import HomePage from "./pages/HomePage.jsx";
 import SignUpPage from "./pages/SignUpPage.jsx";
@@ -9,6 +8,7 @@ import CallPage from "./pages/CallPage.jsx";
 import ChatPage from "./pages/ChatPage.jsx";
 import OnboardingPage from "./pages/OnboardingPage.jsx";
 import FriendsPage from "./pages/FriendsPage.jsx";
+import PasswordRecoveryPage from "./pages/PasswordRecoveryPage.jsx";
 
 import { Toaster } from "react-hot-toast";
 
@@ -16,29 +16,15 @@ import PageLoader from "./components/PageLoader.jsx";
 import useAuthUser from "./hooks/useAuthUser.js";
 import Layout from "./components/Layout.jsx";
 import { useThemeStore } from "./store/useThemeStore.jsx";
+import useNotificationSession from "./hooks/useNotificationSession.js";
 
 const App = () => {
   const { isLoading, authUser } = useAuthUser();
   const { theme } = useThemeStore();
+  useNotificationSession(authUser?._id);
 
   const isAuthenticated = Boolean(authUser);
   const isOnboarded = authUser?.isOnboarded;
-
-  const navigate = useNavigate();
-
-  const [justLoggedOut, setJustLoggedOut] = useState(false);
-  window.setJustLoggedOut = setJustLoggedOut; // temporary global access
-
-  useEffect(() => {
-    if (
-      justLoggedOut &&
-      !isAuthenticated &&
-      !["/login", "/signup"].includes(window.location.pathname)
-    ) {
-      navigate("/login", { replace: true });
-      setJustLoggedOut(false);
-    }
-  }, [isAuthenticated, justLoggedOut, navigate]);
 
   return (
     <div className="h-screen" data-theme={theme}>
@@ -46,6 +32,8 @@ const App = () => {
         <PageLoader />
       ) : (
         <Routes>
+          <Route path="/forgot-password" element={<PasswordRecoveryPage key="forgot" />} />
+          <Route path="/reset-password" element={<PasswordRecoveryPage key="reset" />} />
           <Route
             path="/"
             element={

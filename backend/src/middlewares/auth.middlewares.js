@@ -15,13 +15,16 @@ export const protectRoute = async (req, res, next) => {
     }
     const user = await User.findById(decoded.userId).select("-password");
 
-    if (!user) {
+    if (!user || (decoded.passwordVersion || 0) !== (user.passwordVersion || 0)) {
       return res.status(401).json({ message: "Unauthorized" });
     }
     req.user = user;
 
     next();
   } catch (error) {
+    if (error instanceof jwt.JsonWebTokenError || error instanceof jwt.TokenExpiredError) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     console.error("Error in protectRoute middleware:", error);
     res.status(500).json({ message: "Internal server error" });
   }
