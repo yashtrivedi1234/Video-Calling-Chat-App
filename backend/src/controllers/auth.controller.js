@@ -7,6 +7,7 @@ import { sendPasswordResetEmail } from "../lib/email.js";
 import { sendPush } from "../lib/push.js";
 import PushSubscription from "../models/PushSubscription.js";
 import { leavePresence } from "../lib/presence.js";
+import { closeNotificationFeeds } from "../lib/notificationFeed.js";
 
 const cookieOptions = {
   httpOnly: true,
@@ -118,6 +119,7 @@ export async function logout(req, res) {
       if (req.cookies?.jwt) {
         const decoded = jwt.verify(req.cookies.jwt, process.env.JWT_SECRET_KEY);
         const user = await User.findById(decoded.userId);
+        closeNotificationFeeds(decoded.userId, req.cookies.jwt);
         if (user && (decoded.passwordVersion || 0) === (user.passwordVersion || 0)) {
           await sendPush([user._id], { title: "Signed out", body: "Your Meetify session was signed out.", url: "/login", tag: "account-logout" });
           if (typeof req.body?.pushEndpoint === "string") await PushSubscription.deleteOne({ user: user._id, endpoint: req.body.pushEndpoint });
@@ -213,6 +215,7 @@ export async function resetPassword(req, res) {
     }
 
     res.clearCookie("jwt", cookieOptions);
+    closeNotificationFeeds(user._id);
     void sendPush([user._id], { title: "Password changed", body: "Your Meetify password was changed. Previous sign-in sessions are no longer valid.", url: "/login", tag: "password-changed" });
     return res.status(200).json({ message: "Password updated. Sign in with your new password." });
   } catch (error) {

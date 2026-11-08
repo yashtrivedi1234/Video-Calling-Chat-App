@@ -31,7 +31,7 @@ self.addEventListener("push", (event) => {
     try { target = new URL(data.url || "/notifications", self.location.origin); } catch { target = new URL("/notifications", self.location.origin); }
     if (target.origin !== self.location.origin) target = new URL("/notifications", self.location.origin);
     await self.registration.showNotification(typeof data.title === "string" ? data.title : "Meetify", {
-      body: typeof data.body === "string" ? data.body : "You have new activity on Meetify.",
+      body: data.type === "message.new" ? "Sent you a message." : typeof data.body === "string" ? data.body : "You have new activity on Meetify.",
       icon: "/notification-icon.svg",
       badge: "/notification-icon.svg",
       tag: data.tag || data.id,
@@ -43,7 +43,7 @@ self.addEventListener("push", (event) => {
     // shortcut: retain the last 100 event IDs; use server receipts for longer replay protection.
     if (keys.length > 100) await cache.delete(keys[0]);
     const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-    windows.forEach((client) => client.postMessage({ type: "MEETIFY_EVENT", tag: data.tag }));
+    windows.forEach((client) => client.postMessage({ type: "MEETIFY_EVENT", tag: data.tag, id: data.id, userId: data.userId }));
   })());
 });
 

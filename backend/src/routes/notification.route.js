@@ -1,12 +1,15 @@
 import express from "express";
 import { protectRoute } from "../middlewares/auth.middlewares.js";
-import { getPushConfig, subscribePush, unsubscribePush, reportPresence, reportTyping, reportCall } from "../controllers/notification.controller.js";
+import { getPushConfig, subscribePush, unsubscribePush, reportPresence, reportTyping, reportCall, acknowledgeNotificationFeed } from "../controllers/notification.controller.js";
+import { openNotificationFeed } from "../lib/notificationFeed.js";
 
 const router = express.Router();
 router.use(protectRoute);
 router.get("/config", getPushConfig);
 router.post("/subscriptions", subscribePush);
 router.delete("/subscriptions", unsubscribePush);
+router.get("/events", openNotificationFeed);
+router.post("/events/ack", acknowledgeNotificationFeed);
 const activityLimits = new Map();
 let lastCleanup = 0;
 router.use((req, res, next) => {

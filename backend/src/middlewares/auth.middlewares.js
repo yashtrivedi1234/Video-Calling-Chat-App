@@ -19,6 +19,7 @@ export const protectRoute = async (req, res, next) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
     req.user = user;
+    req.auth = decoded;
 
     next();
   } catch (error) {

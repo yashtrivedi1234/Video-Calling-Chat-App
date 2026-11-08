@@ -82,3 +82,11 @@ test("worker displays every message in the same chat and suppresses a retried de
   assert.equal(new Set(instance.notifications.map((notification) => notification.tag)).size, 3);
   assert.ok(instance.notifications.every((notification) => notification.data.url === "https://meetify.example/chat/bob"));
 });
+
+test("message push notifications never display the message text", async () => {
+  const instance = worker();
+  await instance.dispatch("message", { data: { type: "BIND_USER", userId: "alice" } });
+  await instance.dispatch("push", { data: { json: () => ({ id: "private-message", userId: "alice", type: "message.new", title: "Bob", body: "Private text", url: "/chat/bob" }) } });
+  assert.equal(instance.notifications[0].title, "Bob");
+  assert.equal(instance.notifications[0].body, "Sent you a message.");
+});

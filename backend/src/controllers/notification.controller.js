@@ -6,6 +6,7 @@ import User from "../models/User.js";
 import { pushConfigured, sendPush, validPushSubscription } from "../lib/push.js";
 import { leavePresence, syncPresence } from "../lib/presence.js";
 import { streamClient } from "../lib/stream.js";
+import { acknowledgeNotification } from "../lib/notificationFeed.js";
 
 export const STREAM_NOTIFICATION_EVENTS = {
   "message.new": "sent you a message",
@@ -27,6 +28,19 @@ export const STREAM_NOTIFICATION_EVENTS = {
 
 export function getPushConfig(req, res) {
   res.json({ publicKey: pushConfigured() ? process.env.VAPID_PUBLIC_KEY : null });
+}
+
+export async function acknowledgeNotificationFeed(req, res) {
+  const { receipt, endpoint } = req.body || {};
+  if (typeof receipt !== "string" || !/^[a-f0-9-]{36}$/i.test(receipt) || (endpoint != null && (typeof endpoint !== "string" || endpoint.length > 2048))) {
+    return res.status(400).json({ message: "Invalid notification receipt." });
+  }
+  try {
+    await acknowledgeNotification(req.user._id, receipt, endpoint);
+    res.status(204).end();
+  } catch {
+    res.status(500).json({ message: "Unable to acknowledge notification." });
+  }
 }
 
 export async function subscribePush(req, res) {
@@ -134,12 +148,12 @@ export async function streamWebhook(req, res) {
     }
     const recipients = members.filter((member) => !member.notifications_muted).map((member) => member.user_id || member.user?.id).filter((id) => id !== actorId && actor.friends.some((friend) => friend.toString() === id));
     const callInvite = event.type === "message.new" && event.message?.meetify_event === "call.invite" && event.message?.call_id === channelId;
-    const messageText = typeof event.message?.text === "string" ? event.message.text.slice(0, 160) : "";
     const eventId = createHash("sha256").update(req.body).digest("hex");
     const delivered = await sendPush(recipients, {
       id: eventId,
-      title: callInvite ? "Video call invitation" : event.type === "message.new" ? `Message from ${actor.fullName}` : "Conversation activity",
-      body: callInvite ? `${actor.fullName} invited you to a video call.` : event.type === "message.new" ? messageText || `${actor.fullName} sent an attachment.` : `${actor.fullName} ${STREAM_NOTIFICATION_EVENTS[event.type]}.`,
+      type: callInvite ? "call.invite" : event.type,
+      title: callInvite ? "Video call invitation" : event.type === "message.new" ? actor.fullName : "Conversation activity",
+      body: callInvite ? `${actor.fullName} invited you to a video call.` : event.type === "message.new" ? "Sent you a message." : `${actor.fullName} ${STREAM_NOTIFICATION_EVENTS[event.type]}.`,
       url: callInvite ? `/call/${channelId}` : `/chat/${actorId}`,
       tag: event.type === "message.new" ? `message:${eventId}` : `chat:${channelId}:${event.type}`,
       ttl: callInvite ? 60 : 3600,

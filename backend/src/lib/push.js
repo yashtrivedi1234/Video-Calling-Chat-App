@@ -1,6 +1,7 @@
 import { ECDH, randomUUID } from "node:crypto";
 import * as webpush from "web-push";
 import PushSubscription from "../models/PushSubscription.js";
+import { deliverInApp } from "./notificationFeed.js";
 
 export const pushConfigured = () => Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY && process.env.VAPID_SUBJECT);
 
@@ -22,16 +23,19 @@ export function validPushSubscription(value) {
 }
 
 export async function sendPush(userIds, notification) {
-  if (!pushConfigured() || userIds.length === 0) return true;
+  if (userIds.length === 0) return true;
   try {
-    const subscriptions = await PushSubscription.find({ user: { $in: userIds } });
     const { ttl = 3600, ...data } = notification;
     const id = data.id || randomUUID();
-    const results = await Promise.allSettled(subscriptions.map(async (subscription) => {
+    const payload = { ...data, title: data.title.slice(0, 120), body: data.body.slice(0, 300), id };
+    const subscriptions = pushConfigured() ? await PushSubscription.find({ user: { $in: userIds } }) : [];
+    const handledEndpoints = await deliverInApp(userIds, payload, subscriptions);
+    if (!pushConfigured()) return true;
+    const results = await Promise.allSettled(subscriptions.filter((subscription) => !handledEndpoints.has(subscription.endpoint)).map(async (subscription) => {
       try {
         await webpush.sendNotification(
           { endpoint: subscription.endpoint, keys: subscription.keys },
-          JSON.stringify({ ...data, title: data.title.slice(0, 120), body: data.body.slice(0, 300), id, userId: subscription.user.toString() }),
+          JSON.stringify({ ...payload, userId: subscription.user.toString() }),
           {
             TTL: ttl,
             timeout: 5000,

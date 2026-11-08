@@ -21,6 +21,7 @@ const { syncPresence, expirePresence, PRESENCE_LEASE_MS } = await import("../src
 const { streamClient } = await import("../src/lib/stream.js");
 const { configurePushWebhook } = await import("../scripts/configure-push.js");
 const { acceptFriendRequest } = await import("../src/controllers/user.controller.js");
+const { openNotificationFeed, closeNotificationFeeds, acknowledgeNotification } = await import("../src/lib/notificationFeed.js");
 
 const actorId = "507f1f77bcf86cd799439011";
 const recipientId = "507f1f77bcf86cd799439012";
@@ -67,7 +68,10 @@ beforeEach(() => {
     return output;
   });
 });
-afterEach(() => mock.restoreAll());
+afterEach(() => {
+  for (const userId of [actorId, recipientId, strangerId]) closeNotificationFeeds(userId);
+  mock.restoreAll();
+});
 
 test("subscription validation accepts real browser keys and rejects private or spoofed endpoints", () => {
   const valid = subscriptions[0];
@@ -131,7 +135,9 @@ test("webhooks reject forged bodies and target only unmuted friends in the signe
   await streamWebhook(webhookRequest(event), accepted);
   assert.equal(accepted.statusCode, 200);
   assert.equal(packets.length, 1);
-  assert.equal(packetData().body, "Hello");
+  assert.equal(packetData().body, "Sent you a message.");
+  assert.equal(packetData().title, "Alice");
+  assert.equal(JSON.stringify(packetData()).includes("Hello"), false);
   const firstEventId = packetData().id;
   await streamWebhook(webhookRequest(event), res());
   assert.equal(packetData(packets[1]).id, firstEventId);
@@ -167,7 +173,7 @@ test("consecutive messages each get a separate notification while retries keep t
   assert.equal(new Set(notifications.map((notification) => notification.tag)).size, 3);
   assert.equal(new Set(notifications.map((notification) => notification.id)).size, 3);
   for (const notification of notifications) {
-    assert.equal(notification.body, "Hello");
+    assert.equal(notification.body, "Sent you a message.");
     assert.equal(notification.url, `/chat/${actorId}`);
     assert.equal(notification.userId, recipientId);
   }
@@ -239,4 +245,71 @@ test("retrying an accepted friend request repairs both friend lists and reuses n
   assert.equal(User.findByIdAndUpdate.mock.callCount(), 4);
   assert.equal(packets.length, 2);
   assert.equal(packetData(packets[0]).id, packetData(packets[1]).id);
+});
+
+function notificationFeed(userId = recipientId, token = "recipient-session", exp = Math.floor(Date.now() / 1000) + 60) {
+  const response = new EventEmitter();
+  response.events = [];
+  response.writeHead = (status, headers) => { response.statusCode = status; response.headers = headers; };
+  response.flushHeaders = () => {};
+  response.write = (chunk) => { if (chunk.startsWith("data: ")) response.events.push(JSON.parse(chunk.slice(6))); return true; };
+  response.end = () => { response.writableEnded = true; response.emit("close"); };
+  openNotificationFeed({ user: { _id: userId }, cookies: { jwt: token }, auth: { exp } }, response);
+  return response;
+}
+
+test("an acknowledged foreground event skips push only on the browser that handled it", async () => {
+  const feed = notificationFeed();
+  subscriptions.push({ ...subscriptions[0], _id: "subscription-2", endpoint: "https://fcm.googleapis.com/fcm/send/other-device" });
+  const sending = sendPush([recipientId], { id: "foreground-event", title: "Alice", body: "Sent you a message.", url: `/chat/${actorId}` });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(feed.statusCode, 200);
+  assert.equal(feed.headers["Content-Type"], "text/event-stream");
+  assert.equal(feed.events.length, 1);
+  assert.equal(feed.events[0].userId, recipientId);
+  await acknowledgeNotification(recipientId, feed.events[0].receipt, subscriptions[0].endpoint);
+  assert.equal(await sending, true);
+  assert.equal(packets.length, 1);
+  assert.ok(packets[0].options.path.includes("other-device"));
+});
+
+test("background, missing receipts and unowned endpoints retain native push delivery", async () => {
+  const feed = notificationFeed();
+  const sending = sendPush([recipientId], { title: "Alice", body: "Sent you a message.", url: `/chat/${actorId}` });
+  await new Promise((resolve) => setImmediate(resolve));
+  const { receipt } = feed.events[0];
+  await acknowledgeNotification(strangerId, receipt, subscriptions[0].endpoint);
+  await acknowledgeNotification(recipientId, receipt, "https://fcm.googleapis.com/fcm/send/unowned-device");
+  assert.equal(await sending, true);
+  assert.equal(packets.length, 1);
+  assert.equal(packetData().userId, recipientId);
+});
+
+test("foreground notifications work without web push credentials or a push subscription", async () => {
+  const feed = notificationFeed();
+  const publicKey = process.env.VAPID_PUBLIC_KEY;
+  delete process.env.VAPID_PUBLIC_KEY;
+  try {
+    assert.equal(await sendPush([recipientId], { title: "New friend request", body: "Alice sent you a friend request.", url: "/notifications" }), true);
+    assert.equal(feed.events.length, 1);
+    assert.equal(packets.length, 0);
+  } finally { process.env.VAPID_PUBLIC_KEY = publicKey; }
+});
+
+test("sign-out closes only its session feed and password changes close every account feed", () => {
+  const first = notificationFeed(recipientId, "session-a");
+  const second = notificationFeed(recipientId, "session-b");
+  const other = notificationFeed(strangerId, "other-session");
+  closeNotificationFeeds(recipientId, "session-a");
+  assert.equal(first.writableEnded, true);
+  assert.notEqual(second.writableEnded, true);
+  closeNotificationFeeds(recipientId);
+  assert.equal(second.writableEnded, true);
+  assert.notEqual(other.writableEnded, true);
+});
+
+test("notification feeds cannot outlive their authentication token", async () => {
+  const feed = notificationFeed(recipientId, "expired-session", Math.floor(Date.now() / 1000) - 1);
+  await new Promise((resolve) => setTimeout(resolve, 10));
+  assert.equal(feed.writableEnded, true);
 });
