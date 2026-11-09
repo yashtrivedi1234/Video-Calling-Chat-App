@@ -15,13 +15,21 @@ const userSchema = new mongoose.Schema(
     presenceOnline: { type: Boolean, default: false, select: false },
     bio: { type: String, default: "" },
     profilePic: { type: String, default: "" },
-    nativeLanguage: { type: String, default: "" },
-    learningLanguage: { type: String, default: "" },
     location: { type: String, default: "" },
     isOnboarded: { type: Boolean, default: false },
     friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+    toJSON: {
+      transform(_document, user) {
+        // Older documents may still contain retired profile fields.
+        delete user.nativeLanguage;
+        delete user.learningLanguage;
+        return user;
+      },
+    },
+  }
 );
 
 userSchema.pre("save", async function (next) {

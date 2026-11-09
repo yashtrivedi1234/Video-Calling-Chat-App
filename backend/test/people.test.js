@@ -38,7 +38,7 @@ test("social onboarding needs only name and username, preserves existing data an
     assert.equal(id, me);
     assert.equal(options.runValidators, true);
     saved = update;
-    return { _id: me, friends: ["friend"], nativeLanguage: "hindi", ...update };
+    return { _id: me, friends: ["friend"], ...update };
   });
   const res = response();
   await onboard({ user: { _id: me }, body: { fullName: "  Yash  ", username: " YASH_1 ", friends: [], password: "hacked", isOnboarded: false } }, res);
@@ -46,11 +46,25 @@ test("social onboarding needs only name and username, preserves existing data an
   assert.equal(res.body.user.username, "yash_1");
   assert.equal(res.body.user.fullName, "Yash");
   assert.deepEqual(res.body.user.friends, ["friend"]);
-  assert.equal(res.body.user.nativeLanguage, "hindi");
   assert.equal(saved.friends, undefined);
   assert.equal(saved.password, undefined);
   assert.equal(saved.isOnboarded, true);
   assert.equal(saved.bio, "");
+});
+
+test("retired language fields cannot be saved or returned from older profiles", () => {
+  for (const field of ["nativeLanguage", "learningLanguage"]) {
+    assert.equal(User.schema.path(field), undefined);
+  }
+  const fields = { fullName: "Legacy User", username: "legacy.user", nativeLanguage: "hindi", learningLanguage: "english" };
+  const created = new User(fields).toObject();
+  assert.equal(created.nativeLanguage, undefined);
+  assert.equal(created.learningLanguage, undefined);
+  const existing = JSON.parse(JSON.stringify(User.hydrate({ _id: me, ...fields })));
+  assert.equal(existing.nativeLanguage, undefined);
+  assert.equal(existing.learningLanguage, undefined);
+  assert.equal(existing.username, "legacy.user");
+  assert.equal(existing.fullName, "Legacy User");
 });
 
 test("invalid profile fields cannot reach the database", async () => {
