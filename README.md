@@ -123,6 +123,14 @@ For the frontend, create a `.env` file in the `frontend/` directory:
 
 ---
 
+## Social profiles and people search
+
+Onboarding introduces Meetify's chat, video calls and file sharing, then asks for a name and a unique username. Bio and location are optional. Usernames are case-insensitive, 3–30 characters, and accept letters, numbers, dots and underscores. An availability check helps users choose; a sparse unique MongoDB index enforces claims even under concurrent requests. The app waits for this index before saving onboarding. Existing accounts without a username are sent to onboarding once to claim one; their profiles, language metadata, messages and friendships are retained.
+
+Search is available from the navigation and home page. It matches partial names and usernames, supports a leading `@`, debounces input, cancels stale requests, and returns at most 20 people. Results let friends open a chat, strangers send a friend request, and recipients accept a pending request. Results expose only public profile fields and the current user's relationship to each person. Emails and authentication details are never returned by search. The current small directory uses escaped regex matching; add a dedicated search index as the community grows.
+
+Authenticated endpoints: `GET /api/users/search?q=...`, `GET /api/users/username?username=...`, and `POST /api/auth/onboarding` with `fullName`, `username`, optional `bio`, `location`, and `profilePic`. No new environment variables are required. Voice-only calling is outside this update.
+
 ## Password recovery
 
 The login page includes **Forgot password?**. Users request a reset link by email, then set and confirm their new password. Links expire after 15 minutes, are single-use, and are replaced by newer links. A successful reset signs out existing sessions. Requests for unknown accounts return the same confirmation as known accounts; each account can receive at most one link per minute.

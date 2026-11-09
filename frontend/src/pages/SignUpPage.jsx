@@ -22,7 +22,7 @@ const SignUpPage = () => {
 
   return (
     <div
-      className="h-screen flex items-center justify-center p-4 sm:p-6 md:p-8 bg-base-200"
+      className="min-h-dvh flex items-center justify-center p-4 sm:p-6 md:p-8 bg-base-200"
       data-theme="forest"
     >
       <div className="border border-primary/20 flex flex-col lg:flex-row w-full max-w-5xl mx-auto bg-base-100 rounded-3xl shadow-2xl overflow-hidden transition-all duration-300 hover:shadow-primary/5">
@@ -51,7 +51,7 @@ const SignUpPage = () => {
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tight text-base-content">Create an Account</h2>
                 <p className="text-sm text-base-content/60 font-medium">
-                  Join Meetify and start your language learning adventure!
+                  Your people, your conversations. All in one place.
                 </p>
               </div>
 
@@ -158,13 +158,13 @@ const SignUpPage = () => {
             {/* Illustration */}
             <div className="relative aspect-square max-w-sm mx-auto mb-10 transform hover:scale-105 transition-transform duration-500">
               <div className="absolute inset-0 bg-primary/10 rounded-full blur-2xl"></div>
-              <img src="/i.png" alt="Language connection" className="w-full h-full relative z-10" />
+              <img src="/i.png" alt="Friends connecting on Meetify" className="w-full h-full relative z-10" />
             </div>
 
             <div className="space-y-4">
               <h2 className="text-3xl font-bold leading-tight">Join the community</h2>
               <p className="text-base-content/60 font-medium leading-relaxed">
-                Connect with language partners worldwide, practice conversations, and make life-long friends.
+                Find your people, chat in real time, hop on a video call, and share photos and files.
               </p>
             </div>
 

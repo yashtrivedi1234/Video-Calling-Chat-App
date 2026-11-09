@@ -10,7 +10,7 @@ const vite = await createServer({
   appType: "custom",
 });
 const { axiosInstance } = await vite.ssrLoadModule("/src/lib/axios.js");
-const { getAuthUser, login, forgotPassword, resetPassword } = await vite.ssrLoadModule("/src/lib/api.js");
+const { getAuthUser, login, forgotPassword, resetPassword, searchPeople, checkUsername } = await vite.ssrLoadModule("/src/lib/api.js");
 after(() => vite.close());
 afterEach(() => { mock.restoreAll(); delete globalThis.window; });
 
@@ -59,4 +59,24 @@ test("recovery forms send only email or token and new password to their matching
     { url: "/auth/forgot-password", data: { email: "member@example.com" } },
     { url: "/auth/reset-password", data: { token: "a".repeat(64), password: "new-password" } },
   ]);
+});
+
+
+test("people search and username checks send cancellable query parameters to authenticated endpoints", async () => {
+  const requests = [];
+  axiosInstance.defaults.adapter = async (config) => {
+    requests.push(config);
+    return { status: 200, data: config.url.endsWith("search") ? { users: [{ username: "naina.design" }] } : { available: true }, config };
+  };
+  const controller = new AbortController();
+  assert.deepEqual(await searchPeople("@naina.design", controller.signal), [{ username: "naina.design" }]);
+  assert.equal((await checkUsername("my.name", controller.signal)).available, true);
+  assert.deepEqual(requests.map(({ url, params }) => ({ url, params })), [
+    { url: "/users/search", params: { q: "@naina.design" } },
+    { url: "/users/username", params: { username: "my.name" } },
+  ]);
+  assert.ok(requests.every(({ signal }) => signal === controller.signal));
+  controller.abort();
+  await assert.rejects(searchPeople("old-query", controller.signal), { name: "CanceledError" });
+  assert.equal(requests.length, 2);
 });

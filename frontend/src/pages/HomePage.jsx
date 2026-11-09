@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
 import {
   getOutgoingFriendReqs,
   getRecommendedUsers,
@@ -8,16 +7,13 @@ import {
 } from "../lib/api.js";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { CheckCircleIcon, MapPinIcon, UserPlusIcon, UsersIcon } from "lucide-react";
+import { CheckCircleIcon, MapPinIcon, UserPlusIcon, UsersIcon, SearchIcon } from "lucide-react";
 
-import { capitalize } from "../lib/utils.js";
-
-import FriendCard, { getLanguageFlag } from "../components/FriendCard.jsx";
+import FriendCard from "../components/FriendCard.jsx";
 import NoFriendsFound from "../components/NoFriendsFound.jsx";
 
 const HomePage = () => {
   const queryClient = useQueryClient();
-  const [outgoingRequestsIds, setOutgoingRequestsIds] = useState(new Set());
 
   const { data: friends = [], isLoading: loadingFriends } = useQuery({
     queryKey: ["friends"],
@@ -32,36 +28,24 @@ const HomePage = () => {
   const { data: outgoingFriendReqs } = useQuery({
     queryKey: ["outgoingFriendReqs"],
     queryFn: getOutgoingFriendReqs,
-    enabled: !!localStorage.getItem("token"), // only run if token exists
-    retry: false, // disable retrying on error
-    onError: (err) => {
-      if (err?.response?.status === 401) {
-        console.log("Not authorized to fetch outgoing friend requests");
-      }
-    },
   });
 
   const { mutate: sendRequestMutation, isPending } = useMutation({
     mutationFn: sendFriendRequest,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["outgoingFriendReqs"] });
+      queryClient.invalidateQueries({ queryKey: ["peopleSearch"] });
       toast.success("Friend request sent!");
     },
+    onError: (error) => toast.error(error.response?.data?.message || "Couldn’t send the request."),
   });
 
-  useEffect(() => {
-    const outgoingIds = new Set();
-    if (outgoingFriendReqs && outgoingFriendReqs.length > 0) {
-      outgoingFriendReqs.forEach((req) => {
-        outgoingIds.add(req.recipient._id);
-      });
-      setOutgoingRequestsIds(outgoingIds);
-    }
-  }, [outgoingFriendReqs]);
+  const outgoingRequestsIds = new Set((outgoingFriendReqs?.outgoingReqs || []).map((request) => request.recipient?._id));
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="container mx-auto space-y-10">
+        <Link to="/search" className="flex min-h-12 items-center gap-3 rounded-xl border border-base-300 bg-base-200 px-4 text-base-content/60 hover:border-primary"><SearchIcon className="size-5" />Search people by name or @username</Link>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Your Friends</h2>
           <Link to="/notifications" className="btn btn-outline btn-sm">
@@ -92,7 +76,7 @@ const HomePage = () => {
               <div>
                 <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Meet New People</h2>
                 <p className="opacity-70">
-                  Discover people based on your profile
+                  Find new friends and start a conversation.
                 </p>
               </div>
             </div>
@@ -106,7 +90,7 @@ const HomePage = () => {
             <div className="card bg-base-200 p-6 text-center">
               <h3 className="font-semibold text-lg mb-2">No recommendations available</h3>
               <p className="text-base-content opacity-70">
-                Check back later for new language partners!
+                More people will appear here as the community grows.
               </p>
             </div>
           ) : (
@@ -125,8 +109,9 @@ const HomePage = () => {
                           <img src={user.profilePic} alt={user.fullName} />
                         </div>
 
-                        <div>
+                        <div className="min-w-0">
                           <h3 className="font-semibold text-lg">{user.fullName}</h3>
+                          {user.username && <p className="truncate text-sm text-base-content/60">@{user.username}</p>}
                           {user.location && (
                             <div className="flex items-center text-xs opacity-70 mt-1">
                               <MapPinIcon className="size-3 mr-1" />
@@ -134,18 +119,6 @@ const HomePage = () => {
                             </div>
                           )}
                         </div>
-                      </div>
-
-                      {/* Languages with flags */}
-                      <div className="flex flex-wrap gap-1.5">
-                        <span className="badge badge-secondary">
-                          {getLanguageFlag(user.nativeLanguage)}
-                          Native: {capitalize(user.nativeLanguage)}
-                        </span>
-                        <span className="badge badge-outline">
-                          {getLanguageFlag(user.learningLanguage)}
-                          Learning: {capitalize(user.learningLanguage)}
-                        </span>
                       </div>
 
                       {user.bio && <p className="text-sm opacity-70">{user.bio}</p>}

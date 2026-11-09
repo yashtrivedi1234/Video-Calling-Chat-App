@@ -1,6 +1,51 @@
 import User from "../models/User.js";
 import FriendRequest from "../models/FriendRequest.js";
 import { sendPush } from "../lib/push.js";
+import { normalizeUsername, USERNAME_PATTERN, USERNAME_HELP } from "../lib/username.js";
+
+export async function checkUsername(req, res) {
+  const username = normalizeUsername(req.query.username);
+  if (!USERNAME_PATTERN.test(username)) return res.status(400).json({ message: USERNAME_HELP });
+  try {
+    const taken = await User.exists({ username, _id: { $ne: req.user._id } });
+    return res.json({ username, available: !taken });
+  } catch (error) {
+    console.error("Username check failed:", error.message);
+    return res.status(500).json({ message: "Couldn't check this username. Try again." });
+  }
+}
+
+export async function searchUsers(req, res) {
+  if (typeof req.query.q !== "string" || req.query.q.trim().length > 80) {
+    return res.status(400).json({ message: "Search by name or username, up to 80 characters." });
+  }
+  const term = req.query.q.trim().replace(/^@/, "");
+  if (!term) return res.json({ users: [] });
+  const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  try {
+    // shortcut: bounded regex search suits this small directory; use a search index as it grows.
+    const people = await User.find({
+      _id: { $ne: req.user._id }, isOnboarded: true,
+      $or: [{ username: { $regex: escaped, $options: "i" } }, { fullName: { $regex: escaped, $options: "i" } }],
+    }).select("fullName username profilePic bio").sort({ username: 1, _id: 1 }).limit(20).lean();
+    const ids = people.map((person) => person._id);
+    const requests = ids.length ? await FriendRequest.find({
+      status: "pending",
+      $or: [{ sender: req.user._id, recipient: { $in: ids } }, { recipient: req.user._id, sender: { $in: ids } }],
+    }).select("sender recipient").lean() : [];
+    const friends = new Set((req.user.friends || []).map(String));
+    const users = people.map((person) => {
+      const id = String(person._id);
+      const request = requests.find((item) => String(item.sender) === id || String(item.recipient) === id);
+      const relationship = friends.has(id) ? "friend" : request ? (String(request.sender) === id ? "incoming" : "outgoing") : "none";
+      return { ...person, relationship, ...(relationship === "incoming" ? { requestId: request._id } : {}) };
+    });
+    return res.json({ users });
+  } catch (error) {
+    console.error("People search failed:", error.message);
+    return res.status(500).json({ message: "Couldn't search right now. Try again." });
+  }
+}
 
 export async function getRecommendedUsers(req, res) {
   try {
@@ -14,7 +59,7 @@ export async function getRecommendedUsers(req, res) {
         { _id: { $nin: currentUser.friends || [] } },
         { isOnboarded: true },
       ],
-    });
+    }).select("fullName username profilePic bio location");
 
     res.status(200).json({ recommendedUsers });
   } catch (error) {
@@ -29,7 +74,7 @@ export async function getMyFriends(req, res) {
       .select("friends")
       .populate(
         "friends",
-        "fullName profilePic nativeLanguage learningLanguage"
+        "fullName username profilePic bio"
       );
     res.status(200).json({ friends: user.friends });
   } catch (error) {
@@ -123,13 +168,13 @@ export async function getFriendRequests(req, res) {
       status: "pending",
     }).populate(
       "sender",
-      "fullName profilePic nativeLanguage learningLanguage"
+      "fullName username profilePic"
     );
 
     const acceptedReqs = await FriendRequest.find({
       sender: req.user._id,
       status: "accepted",
-    }).populate("recipient", "fullName profilePic");
+    }).populate("recipient", "fullName username profilePic");
     res.status(200).json({ incomingReqs, acceptedReqs });
   } catch (error) {
     console.log("Error in getFriendRequests Controller", error.message);
@@ -144,7 +189,7 @@ export async function getOutgoingFriendReqs(req, res) {
       status: "pending",
     }).populate(
       "recipient",
-      "fullName profilePic nativeLanguage learningLanguage"
+      "fullName username profilePic"
     );
     res.status(200).json({ outgoingReqs });
   } catch (error) {
@@ -158,7 +203,7 @@ export const getUserFriendsById = async (req, res) => {
   try {
     const userId = req.params.id;
 
-    const user = await User.findById(userId).populate("friends", "-password"); // remove password
+    const user = await User.findById(userId).populate("friends", "fullName username profilePic bio");
 
     if (!user) return res.status(404).json({ message: "User not found" });
 

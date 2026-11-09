@@ -63,6 +63,16 @@ export const completeOnboarding = async (userData) => {
   }
 };
 
+export async function checkUsername(username, signal) {
+  const { data } = await axiosInstance.get("/users/username", { params: { username }, signal });
+  return data;
+}
+
+export async function searchPeople(q, signal) {
+  const { data } = await axiosInstance.get("/users/search", { params: { q }, signal });
+  return data.users;
+}
+
 export async function getUserFriends() {
   try {
     const response = await axiosInstance.get("/users/friends");

@@ -8,6 +8,7 @@ import CallPage from "./pages/CallPage.jsx";
 import ChatPage from "./pages/ChatPage.jsx";
 import OnboardingPage from "./pages/OnboardingPage.jsx";
 import FriendsPage from "./pages/FriendsPage.jsx";
+import SearchPage from "./pages/SearchPage.jsx";
 import PasswordRecoveryPage from "./pages/PasswordRecoveryPage.jsx";
 
 import { Toaster } from "react-hot-toast";
@@ -24,7 +25,7 @@ const App = () => {
   useNotificationSession(authUser?._id);
 
   const isAuthenticated = Boolean(authUser);
-  const isOnboarded = authUser?.isOnboarded;
+  const isOnboarded = authUser?.isOnboarded && Boolean(authUser?.username);
 
   return (
     <div className="min-h-dvh" data-theme={theme}>
@@ -32,6 +33,9 @@ const App = () => {
         <PageLoader />
       ) : (
         <Routes>
+          <Route path="/search" element={isAuthenticated && isOnboarded ? (
+            <Layout showSidebar={true}><SearchPage /></Layout>
+          ) : <Navigate to={!isAuthenticated ? "/login" : "/onboarding"} />} />
           <Route path="/forgot-password" element={<PasswordRecoveryPage key="forgot" />} />
           <Route path="/reset-password" element={<PasswordRecoveryPage key="reset" />} />
           <Route

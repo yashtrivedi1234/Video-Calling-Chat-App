@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import { normalizeUsername, USERNAME_PATTERN, USERNAME_HELP } from "../lib/username.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { createHash, randomBytes } from "node:crypto";
@@ -227,35 +228,33 @@ export async function resetPassword(req, res) {
 export async function onboard(req, res) {
   try {
     const userId = req.user._id;
-    const { fullName, bio, nativeLanguage, learningLanguage, location, profilePic } =
-      req.body;
-    const missingFields = [];
-    if (!fullName) missingFields.push("fullName");
-    if (!bio) missingFields.push("bio");
-    if (!nativeLanguage) missingFields.push("nativeLanguage");
-    if (!learningLanguage) missingFields.push("learningLanguage");
-    if (!location) missingFields.push("location");
-
-    if (missingFields.length > 0) {
-      return res
-        .status(400)
-        .json({ message: "All fields are required", missingFields });
+    const username = normalizeUsername(req.body?.username);
+    const { fullName, bio = "", location = "", profilePic = "" } = req.body || {};
+    if (!USERNAME_PATTERN.test(username)) {
+      return res.status(400).json({ message: USERNAME_HELP });
     }
+    if (typeof fullName !== "string" || !fullName.trim() || fullName.trim().length > 80 ||
+        typeof bio !== "string" || bio.length > 240 || typeof location !== "string" || location.length > 100 ||
+        typeof profilePic !== "string" || profilePic.length > 2048 ||
+        (profilePic && !/^https?:\/\//i.test(profilePic))) {
+      return res.status(400).json({ message: "Enter a name up to 80 characters, bio up to 240, and location up to 100." });
+    }
+    // Wait for the unique index so concurrent claims cannot reserve the same handle.
+    await User.init();
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       {
-        fullName,
-        bio,
-        nativeLanguage,
-        learningLanguage,
-        location,
+        username,
+        fullName: fullName.trim(),
+        bio: bio.trim(),
+        location: location.trim(),
         profilePic,
         isOnboarded: true,
       },
-      { new: true }
+      { new: true, runValidators: true }
     );
     if (!updatedUser) {
-      res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
 
     try {
@@ -276,6 +275,9 @@ export async function onboard(req, res) {
       user: updatedUser,
     });
   } catch (error) {
+    if (error.code === 11000 && error.keyPattern?.username) {
+      return res.status(409).json({ message: "That username is already taken. Try another one." });
+    }
     console.log("Error in onboard controller:", error);
     res.status(500).json({ message: "Internal server error" });
   }

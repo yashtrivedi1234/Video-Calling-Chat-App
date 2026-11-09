@@ -11,7 +11,7 @@ export default function useNotificationSession(userId) {
     if (!userId) return;
     const banners = new Set();
     const invalidateFriends = () => {
-      for (const key of ["friendRequests", "friends", "users", "outgoingFriendReqs"]) queryClient.invalidateQueries({ queryKey: [key] });
+      for (const key of ["friendRequests", "friends", "userFriends", "users", "outgoingFriendReqs", "peopleSearch"]) queryClient.invalidateQueries({ queryKey: [key] });
     };
     const closeFeed = connectNotifications(userId, {
       onNotification: (notification) => {

@@ -1,9 +1,12 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import { USERNAME_PATTERN } from "../lib/username.js";
 
 const userSchema = new mongoose.Schema(
   {
     fullName: { type: String, required: true },
+    // Existing accounts claim a username on their next visit; other profile data stays intact.
+    username: { type: String, lowercase: true, trim: true, match: USERNAME_PATTERN, unique: true, sparse: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true, minlength: 6, select: false },
     passwordVersion: { type: Number, default: 0 },

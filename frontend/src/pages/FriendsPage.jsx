@@ -1,3 +1,4 @@
+import FriendCard from "../components/FriendCard.jsx";
 import useAuthUser from "../hooks/useAuthUser";
 import { useQuery } from "@tanstack/react-query";
 import { getUserFriendsById } from "../lib/api.js";
@@ -30,14 +31,8 @@ const FriendsPage = () => {
         <p>No friends found.</p>
       ) : (
         <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {friends.map((friend) => (
-            <div
-              key={friend._id}
-              className="border rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow"
-            >
-              <div className="font-semibold text-lg">{friend.fullName}</div>
-              <p className="text-sm text-gray-500">{friend.email}</p>
-            </div>
+          {(friends || []).map((friend) => (
+            <FriendCard key={friend._id} friend={friend} />
           ))}
         </div>
       )}
